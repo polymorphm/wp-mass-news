@@ -281,7 +281,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         #  ...
         #  return
         
-        raise NotImplemented('not implemented account format')
+        raise NotImplementedError('not implemented account format')
     
     for task_i in range(task_cfg.count):
         task = Task()
