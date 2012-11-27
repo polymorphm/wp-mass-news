@@ -49,7 +49,7 @@ def task_end_handle(out, task):
         
         return
     
-    out.write(task.blog_url)
+    out.write(task.result)
     
     msg = '[{!r}] {!r}: result: {!r}'.format(
             task.i, task.blog_url, task.result)
