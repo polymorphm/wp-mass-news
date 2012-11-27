@@ -32,23 +32,36 @@ class UserError(Exception):
 class TaskConfig:
     pass
 
-def task_begin_handle(task, out=None):
-    print('[{!r}] {!r}: begin'.format(task.i, task.blog_url))
-    # TODO: ...
+def task_begin_handle(out, task):
+    msg = '[{!r}] {!r}: begin'.format(task.i, task.blog_url)
+    
+    print(msg)
+    out.write(msg, ext='log')
 
-def task_end_handle(task, out=None):
+def task_end_handle(out, task):
     if task.error is not None:
-        print('[{!r}] {!r}: error: {!r}: {}'.format(task.i, task.blog_url,
-                task.error[0], task.error[1]))
-        # TODO: ...
+        msg = '[{!r}] {!r}: error: {!r}: {}'.format(
+                task.i, task.blog_url, task.error[0], task.error[1])
+        
+        print(msg)
+        out.write(msg, ext='log')
+        out.write(msg, ext='err.log')
         
         return
     
-    print('[{!r}] {!r}: result: {!r}'.format(task.i, task.blog_url, task.result))
-    # TODO: ...
+    out.write(task.blog_url)
+    
+    msg = '[{!r}] {!r}: result: {!r}'.format(
+            task.i, task.blog_url, task.result)
+    
+    print(msg)
+    out.write(msg, ext='log')
 
-def finish_handle():
-    print('done!')
+def finish_handle(out):
+    msg = 'done!'
+    print(msg)
+    out.write(msg, ext='log')
+    
     ioloop.IOLoop.instance().stop()
 
 def main():
@@ -65,9 +78,9 @@ def main():
         config.read(args.cfg, encoding='utf-8')
         
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
-        out = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
-        if out is not None:
-            out = os.path.join(cfg_dir, out)
+        out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
+        if out_file is not None:
+            out_file = os.path.join(cfg_dir, out_file)
         
         task_cfg.accs = os.path.join(cfg_dir, config.get(DEFAULT_CONFIG_SECTION, 'accs'))
         task_cfg.acc_fmt = config.get(DEFAULT_CONFIG_SECTION, 'acc-fmt')
@@ -79,15 +92,17 @@ def main():
     except configparser.Error as e:
         raise UserError('config error: {}'.format(e))
     
+    out = out_mgr.OutMgr(out_file=out_file)
+    
     task.bulk_task(
             wp_post.wp_post_task,
             wp_post.get_wp_post_task_list(
                     task_cfg,
-                    task_begin_handle=lambda task: task_begin_handle(task, out=out),
-                    task_end_handle=lambda task: task_end_handle(task, out=out),
+                    task_begin_handle=lambda task: task_begin_handle(out, task),
+                    task_end_handle=lambda task: task_end_handle(out, task),
                     ),
             conc=conc,
-            callback=finish_handle,
+            callback=lambda: finish_handle(out),
             )
     
     ioloop.IOLoop.instance().start()
