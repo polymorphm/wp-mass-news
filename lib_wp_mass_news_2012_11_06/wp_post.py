@@ -260,24 +260,24 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     task_begin_handle = stack_context.wrap(task_begin_handle)
     task_end_handle = stack_context.wrap(task_end_handle)
     
-    raw_accs_iter = get_items.get_infinite_items(task_cfg.accs)
+    raw_accs_iter = get_items.get_infinite_items(task_cfg.accs, is_csv=True)
     titles_iter = get_items.get_infinite_items(task_cfg.titles)
     content_iter = get_items.get_infinite_items(task_cfg.content)
     
     def next_acc():
         if task_cfg.acc_fmt == 'wp-0':
             while True:
-                acc_line = next(raw_accs_iter)
-            
-                acc_s_line = acc_line.split(';')
-                if len(acc_s_line) != 3:
-                    continue
+                acc_row = next(raw_accs_iter)
                 
-                blog_url, username, password = acc_s_line
+                if len(acc_row) != 5:
+                    raise NotImplementedError(
+                            'invalid or not implemented account format')
+                
+                email, email_password, blog_url, username, password = acc_row
                 
                 return blog_url, username, password
         
-        # if task_cfg.acc_fmt == 'wp-1':
+        # if task_cfg.acc_fmt == 'wp-...':
         #  ...
         #  return
         
