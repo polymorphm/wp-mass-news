@@ -260,9 +260,9 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     task_begin_handle = stack_context.wrap(task_begin_handle)
     task_end_handle = stack_context.wrap(task_end_handle)
     
-    raw_accs_iter = get_items.get_infinite_items(task_cfg.accs, is_csv=True)
-    titles_iter = get_items.get_infinite_items(task_cfg.titles)
-    content_iter = get_items.get_infinite_items(task_cfg.content)
+    raw_accs_iter = get_items.get_random_infinite_items(task_cfg.accs, is_csv=True)
+    titles_iter = get_items.get_random_infinite_items(task_cfg.titles)
+    content_iter = get_items.get_random_infinite_items(task_cfg.content)
     
     def next_acc():
         if task_cfg.acc_fmt == 'wp-0':
