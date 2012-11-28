@@ -69,7 +69,9 @@ def csv_items_open(path):
             as fd:
         csv_reader = csv.reader(fd)
         
-        return csv_reader
+        for csv_row in csv_reader:
+            # TODO: for Python-3.3 -- need fix to PEP-0380
+            yield csv_row
 
 def items_open(path, is_csv=None):
     if is_csv is None:
