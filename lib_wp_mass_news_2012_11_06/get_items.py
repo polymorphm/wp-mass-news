@@ -86,6 +86,7 @@ def get_finite_items(path):
 
 def get_infinite_items(path):
     for item in itertools.cycle(items_open(path)):
+        # TODO: for Python-3.3 -- need fix to PEP-0380
         yield item
 
 def get_random_finite_items(path):
@@ -97,6 +98,7 @@ def get_random_finite_items(path):
     random.shuffle(items)
     
     for item in items:
+        # TODO: for Python-3.3 -- need fix to PEP-0380
         yield item
 
 def get_random_infinite_items(path):
@@ -112,6 +114,7 @@ def get_random_infinite_items(path):
         random.shuffle(items)
         
         for item in items:
+            # TODO: for Python-3.3 -- need fix to PEP-0380
             yield item
 
 def clean_title(title):
