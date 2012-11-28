@@ -21,6 +21,7 @@ assert str is not bytes
 
 import sys
 import os, os.path
+import csv
 import itertools
 import random
 import re
@@ -63,7 +64,23 @@ def dir_items_open(path):
             
             yield item
 
-def items_open(path):
+def csv_items_open(path):
+    with open(path, 'r', encoding='utf-8', newline='\n', errors='replace') \
+            as fd:
+        csv_reader = csv.reader(fd)
+        
+        return csv_reader
+
+def items_open(path, is_csv=None):
+    if is_csv is None:
+        is_csv = False
+    
+    if is_csv:
+        if not os.path.isfile(path):
+            path = '{}.csv'.format(path)
+        
+        return csv_items_open(path)
+    
     if os.path.isdir(path):
         return dir_items_open(path)
     
@@ -81,18 +98,18 @@ def items_open(path):
     
     raise NotFoundError('No such file or directory: ' + repr(path))
 
-def get_finite_items(path):
-    return items_open(path)
+def get_finite_items(path, is_csv=None):
+    return items_open(path, is_csv=is_csv)
 
-def get_infinite_items(path):
-    for item in itertools.cycle(items_open(path)):
+def get_infinite_items(path, is_csv=None):
+    for item in itertools.cycle(items_open(path, is_csv=is_csv)):
         # TODO: for Python-3.3 -- need fix to PEP-0380
         yield item
 
-def get_random_finite_items(path):
+def get_random_finite_items(path, is_csv=None):
     items = []
     
-    for item in items_open(path):
+    for item in items_open(path, is_csv=is_csv):
         items.append(item)
     
     random.shuffle(items)
@@ -101,10 +118,10 @@ def get_random_finite_items(path):
         # TODO: for Python-3.3 -- need fix to PEP-0380
         yield item
 
-def get_random_infinite_items(path):
+def get_random_infinite_items(path, is_csv=None):
     items = []
     
-    for item in items_open(path):
+    for item in items_open(path, is_csv=is_csv):
         items.append(item)
     
     if not items:
