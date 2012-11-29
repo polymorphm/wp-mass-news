@@ -25,11 +25,9 @@ from http import cookiejar
 from urllib import request
 from tornado import ioloop, stack_context, gen
 from . import get_items
+from . import urllib_request_helper
 from . import lib_html_parse
 html_parse = lib_html_parse.import_module('html_parse')
-
-DEFAULT_TIMEOUT = 20.0
-DEFAULT_RESPONSE_LIMIT = 10000000
 
 class WpError(Exception):
     pass
@@ -43,30 +41,16 @@ class PublishWpError(WpError):
 class Task:
     pass
 
-def open_with_headers(opener, *args, headers=None, new_headers=None, **kwargs):
-    if headers is not None:
-        spec_headers = headers
-    else:
-        spec_headers = opener.addheaders
-    
-    if new_headers is not None:
-        spec_headers = list(spec_headers)
-        spec_headers += new_headers
-    
-    orig_headers = opener.addheaders
-    opener.addheaders = spec_headers
-    try:
-        return opener.open(*args, **kwargs)
-    finally:
-        opener.addheaders = orig_headers
-
 def wp_post_blocking(blog_url=None, username=None, password=None,
-        title=None, content=None, slug=None):
+        title=None, content=None, slug=None, user_agent_name=None):
     assert blog_url is not None
     assert username is not None
     assert password is not None
     assert title is not None
     assert content is not None
+    
+    if user_agent_name is None:
+        user_agent_name = urllib_request_helper.DEFAULT_USER_AGENT_NAME
     
     blog_url_parsed = url.urlparse(blog_url)
     
@@ -85,8 +69,12 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE auth ***
     
-    resp = opener.open(
+    resp = urllib_request_helper.open_with_headers(
+            opener,
             wp_login_url,
+            headers=(
+                ('User-Agent', user_agent_name),
+            ),
             data=url.urlencode({
                     'wp-submit': 'Log In',
                     'testcookie': '1',
@@ -94,7 +82,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
                     'pwd': password,
                     'log': username,
                     }).encode(),
-            timeout=DEFAULT_TIMEOUT,
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
     if resp.getcode() != 200 or resp.geturl() != wp_admin_url:
@@ -102,15 +90,19 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE get params ***
     
-    resp = opener.open(
+    resp = urllib_request_helper.open_with_headers(
+            opener,
             wp_post_url,
-            timeout=DEFAULT_TIMEOUT,
+            headers=(
+                ('User-Agent', user_agent_name),
+            ),
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
     if resp.getcode() != 200 or resp.geturl() != wp_post_url:
         raise WpError('wp get params error')
     
-    data = resp.read(DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
     
     form_html_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
@@ -159,11 +151,15 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             'user_ID': params['user_ID'],
             }
     
-    resp = open_with_headers(
+    resp = urllib_request_helper.open_with_headers(
             opener,
             wp_ajax_url,
+            headers=(
+                ('User-Agent', user_agent_name),
+                ('X-Requested-With', 'XMLHttpRequest'),
+            ),
             data=url.urlencode(post_data).encode(),
-            timeout=DEFAULT_TIMEOUT,
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
     if resp.getcode() != 200 or resp.geturl() != wp_ajax_url:
@@ -171,15 +167,19 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE get edit-param ***
     
-    resp = opener.open(
+    resp = urllib_request_helper.open_with_headers(
+            opener,
             wp_edit_url,
-            timeout=DEFAULT_TIMEOUT,
+            headers=(
+                ('User-Agent', user_agent_name),
+            ),
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
     if resp.getcode() != 200 or resp.geturl() != wp_edit_url:
         raise WpError('wp get edit-param error')
     
-    data = resp.read(DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
     
     inline_edit_param_node = next(iter(html_parse.find_tags(
             (html_parse.html_parse(data),),
@@ -221,11 +221,15 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             'post_status': 'all',
             }
     
-    resp = open_with_headers(
+    resp = urllib_request_helper.open_with_headers(
             opener,
             wp_ajax_url,
+            headers=(
+                ('User-Agent', user_agent_name),
+                ('X-Requested-With', 'XMLHttpRequest'),
+            ),
             data=url.urlencode(post_data).encode(),
-            timeout=DEFAULT_TIMEOUT,
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
     if resp.getcode() != 200 or resp.geturl() != wp_ajax_url:
