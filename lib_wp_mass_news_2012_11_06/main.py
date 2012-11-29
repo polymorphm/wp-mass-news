@@ -92,6 +92,7 @@ def main():
     try:
         config.read(args.cfg, encoding='utf-8')
         
+        task_cfg.ua_name = config.get(DEFAULT_CONFIG_SECTION, 'ua-name', fallback=None)
         use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
         out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
