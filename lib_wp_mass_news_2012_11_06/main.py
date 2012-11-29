@@ -34,17 +34,17 @@ class UserError(Exception):
 class TaskConfig:
     pass
 
-def task_begin_handle(out, task):
-    msg = '[{!r}] {!r}: begin'.format(task.i, task.blog_url)
+def task_begin_handle(task_cfg, task):
+    msg = '[{!r}/{!r}] {!r}: begin'.format(task.i, task_cfg.count, task.blog_url)
     
     print(msg)
-    out.write(msg, ext='log')
+    task_cfg.out.write(msg, ext='log')
 
-def task_end_handle(out, task):
+def task_end_handle(task_cfg, task):
     if task.error is not None:
         e_type, e_value, e_tb = task.error
-        msg = '[{!r}] {!r}: error: {!r}: {}'.format(
-                task.i, task.blog_url, e_type, e_value)
+        msg = '[{!r}/{!r}] {!r}: error: {!r}: {}'.format(
+                task.i, task_cfg.count, task.blog_url, e_type, e_value)
         tb_msg = '{}\n\n{}\n\n'.format(
                 msg, 
                 '\n'.join(map(
@@ -54,28 +54,28 @@ def task_end_handle(out, task):
                 )
         
         print(msg)
-        out.write(msg, ext='log')
-        out.write(msg, ext='err.log')
-        out.write(tb_msg, ext='err-tb.log')
+        task_cfg.out.write(msg, ext='log')
+        task_cfg.out.write(msg, ext='err.log')
+        task_cfg.out.write(tb_msg, ext='err-tb.log')
         
         return
     
     anc = '<a href="{}">{}</a>'.format(
             html.escape(task.result), html.escape(task.title))
     
-    out.write(task.result)
-    out.write(anc, ext='anc.txt')
+    task_cfg.out.write(task.result)
+    task_cfg.out.write(anc, ext='anc.txt')
     
-    msg = '[{!r}] {!r}: result: {!r}'.format(
-            task.i, task.blog_url, task.result)
+    msg = '[{!r}/{!r}] {!r}: result: {!r}'.format(
+            task.i, task_cfg.count, task.blog_url, task.result)
     
     print(msg)
-    out.write(msg, ext='log')
+    task_cfg.out.write(msg, ext='log')
 
-def finish_handle(out):
+def finish_handle(task_cfg):
     msg = 'done!'
     print(msg)
-    out.write(msg, ext='log')
+    task_cfg.out.write(msg, ext='log')
     
     ioloop.IOLoop.instance().stop()
 
@@ -107,17 +107,17 @@ def main():
     except configparser.Error as e:
         raise UserError('config error: {}'.format(e))
     
-    out = out_mgr.OutMgr(out_file=out_file)
+    task_cfg.out = out_mgr.OutMgr(out_file=out_file)
     
     task.bulk_task(
             wp_post.wp_post_task,
             wp_post.get_wp_post_task_list(
                     task_cfg,
-                    task_begin_handle=lambda task: task_begin_handle(out, task),
-                    task_end_handle=lambda task: task_end_handle(out, task),
+                    task_begin_handle=lambda task: task_begin_handle(task_cfg, task),
+                    task_end_handle=lambda task: task_end_handle(task_cfg, task),
                     ),
             conc=conc,
-            callback=lambda: finish_handle(out),
+            callback=lambda: finish_handle(task_cfg),
             )
     
     ioloop.IOLoop.instance().start()
