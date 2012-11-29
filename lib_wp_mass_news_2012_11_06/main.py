@@ -92,6 +92,7 @@ def main():
     try:
         config.read(args.cfg, encoding='utf-8')
         
+        use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
         out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
         if out_file is not None:
@@ -108,6 +109,17 @@ def main():
         raise UserError('config error: {}'.format(e))
     
     task_cfg.out = out_mgr.OutMgr(out_file=out_file)
+    
+    if use_tor is None:
+        use_tor == False
+    
+    if use_tor:
+        # TODO: this is dirty hack :-( .. need pure HTTP-over-SOCKS implementation
+        
+        from socks import PROXY_TYPE_SOCKS5, setdefaultproxy, wrapmodule as socks_wrap
+        from http import client as http_client
+        setdefaultproxy(PROXY_TYPE_SOCKS5, 'localhost', 9050)
+        socks_wrap(http_client)
     
     task.bulk_task(
             wp_post.wp_post_task,
