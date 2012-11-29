@@ -21,6 +21,8 @@ import sys
 import argparse
 import configparser
 import os, os.path
+import traceback
+import html
 from tornado import ioloop
 from . import task, wp_post, out_mgr
 
@@ -40,16 +42,29 @@ def task_begin_handle(out, task):
 
 def task_end_handle(out, task):
     if task.error is not None:
+        e_type, e_value, e_tb = task.error
         msg = '[{!r}] {!r}: error: {!r}: {}'.format(
-                task.i, task.blog_url, task.error[0], task.error[1])
+                task.i, task.blog_url, e_type, e_value)
+        tb_msg = '{}\n\n{}\n\n'.format(
+                msg, 
+                '\n'.join(map(
+                        lambda s: s.rstrip(),
+                        traceback.format_exception(e_type, e_value, e_tb),
+                        )),
+                )
         
         print(msg)
         out.write(msg, ext='log')
         out.write(msg, ext='err.log')
+        out.write(tb_msg, ext='err-tb.log')
         
         return
     
+    anc = '<a href="{}">{}</a>'.format(
+            html.escape(task.result), html.escape(task.title))
+    
     out.write(task.result)
+    out.write(anc, ext='anc.txt')
     
     msg = '[{!r}] {!r}: result: {!r}'.format(
             task.i, task.blog_url, task.result)
