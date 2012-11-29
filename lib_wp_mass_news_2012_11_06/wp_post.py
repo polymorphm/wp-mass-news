@@ -42,15 +42,15 @@ class Task:
     pass
 
 def wp_post_blocking(blog_url=None, username=None, password=None,
-        title=None, content=None, slug=None, user_agent_name=None):
+        title=None, content=None, slug=None, ua_name=None):
     assert blog_url is not None
     assert username is not None
     assert password is not None
     assert title is not None
     assert content is not None
     
-    if user_agent_name is None:
-        user_agent_name = urllib_request_helper.DEFAULT_USER_AGENT_NAME
+    if ua_name is None:
+        ua_name = urllib_request_helper.DEFAULT_USER_AGENT_NAME
     
     blog_url_parsed = url.urlparse(blog_url)
     
@@ -73,7 +73,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             opener,
             wp_login_url,
             headers=(
-                ('User-Agent', user_agent_name),
+                ('User-Agent', ua_name),
             ),
             data=url.urlencode({
                     'wp-submit': 'Log In',
@@ -94,7 +94,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             opener,
             wp_post_url,
             headers=(
-                ('User-Agent', user_agent_name),
+                ('User-Agent', ua_name),
             ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -155,7 +155,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             opener,
             wp_ajax_url,
             headers=(
-                ('User-Agent', user_agent_name),
+                ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
             ),
             data=url.urlencode(post_data).encode(),
@@ -171,7 +171,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             opener,
             wp_edit_url,
             headers=(
-                ('User-Agent', user_agent_name),
+                ('User-Agent', ua_name),
             ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -225,7 +225,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             opener,
             wp_ajax_url,
             headers=(
-                ('User-Agent', user_agent_name),
+                ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
             ),
             data=url.urlencode(post_data).encode(),
@@ -294,6 +294,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.blog_url, task.username, task.password = next_acc()
         task.title = next(titles_iter)
         task.content = next(content_iter)
+        task.ua_name = task_cfg.ua_name
         
         task.task_begin_handle = task_begin_handle
         task.task_end_handle = task_end_handle
@@ -314,6 +315,7 @@ def wp_post_task(task, callback=None):
             password=task.password,
             title=task.title,
             content=task.content,
+            ua_name=task.ua_name
             )).args
     
     if task.task_end_handle is not None:
