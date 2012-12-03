@@ -142,7 +142,7 @@ def main():
             )
     
     if task_cfg.acc_fmt.startswith('lj-'):
-        import lj_post
+        from . import lj_post
         
         task_func = lj_post.lj_post_task
         task_list = get_task_list(lj_post.get_lj_post_task_list)
