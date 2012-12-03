@@ -261,7 +261,9 @@ def wp_post(*args, callback=None, **kwargs):
     t.daemon = True
     t.start()
 
-def acc_save(task_cfg, acc_row, excl_list):
+def wp_acc_save(task_cfg, task, excl_list):
+    acc_row = task._acc_row
+    
     if acc_row in excl_list:
         return
     
@@ -305,14 +307,14 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task = Task()
         
         task.i = task_i
-        task.blog_url, task.username, task.password, acc_row = next_acc()
+        task.blog_url, task.username, task.password, task._acc_row = next_acc()
         task.title = next(titles_iter)
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name
         
-        task.acc_save = lambda _acc_row=acc_row: acc_save(
+        task.acc_save = lambda _task=task: wp_acc_save(
                 task_cfg,
-                _acc_row,
+                _task,
                 acc_save_excl_list,
                 )
         
