@@ -21,7 +21,7 @@ DEFAULT_USER_AGENT_NAME = 'Python'
 DEFAULT_TIMEOUT = 20.0
 DEFAULT_RESPONSE_LIMIT = 10000000
 
-def open_with_headers(opener, *args, headers=None, new_headers=None, **kwargs):
+def ext_open(opener, *args, headers=None, new_headers=None, **kwargs):
     if headers is not None:
         spec_headers = headers
     else:
