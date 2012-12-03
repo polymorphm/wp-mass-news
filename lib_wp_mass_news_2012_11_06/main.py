@@ -135,13 +135,24 @@ def main():
         setdefaultproxy(PROXY_TYPE_SOCKS5, 'localhost', 9050)
         socks_wrap(http_client)
     
+    get_task_list = lambda get_task_list_func: get_task_list_func(
+            task_cfg,
+            task_begin_handle=lambda task: task_begin_handle(task_cfg, task),
+            task_end_handle=lambda task: task_end_handle(task_cfg, task),
+            )
+    
+    if task_cfg.acc_fmt.startswith('lj-'):
+        import lj_post
+        
+        task_func = lj_post.lj_post_task
+        task_list = get_task_list(lj_post.get_lj_post_task_list)
+    else:
+        task_func = wp_post.wp_post_task
+        task_list = get_task_list(wp_post.get_wp_post_task_list)
+    
     task.bulk_task(
-            wp_post.wp_post_task,
-            wp_post.get_wp_post_task_list(
-                    task_cfg,
-                    task_begin_handle=lambda task: task_begin_handle(task_cfg, task),
-                    task_end_handle=lambda task: task_end_handle(task_cfg, task),
-                    ),
+            task_func,
+            task_list,
             conc=conc,
             callback=lambda: finish_handle(task_cfg),
             )
