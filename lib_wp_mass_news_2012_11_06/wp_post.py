@@ -69,7 +69,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE auth ***
     
-    resp = urllib_request_helper.open_with_headers(
+    resp = urllib_request_helper.ext_open(
             opener,
             wp_login_url,
             headers=(
@@ -90,7 +90,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE get params ***
     
-    resp = urllib_request_helper.open_with_headers(
+    resp = urllib_request_helper.ext_open(
             opener,
             wp_post_url,
             headers=(
@@ -151,7 +151,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             'user_ID': params['user_ID'],
             }
     
-    resp = urllib_request_helper.open_with_headers(
+    resp = urllib_request_helper.ext_open(
             opener,
             wp_ajax_url,
             headers=(
@@ -167,7 +167,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     # *** PHASE get edit-param ***
     
-    resp = urllib_request_helper.open_with_headers(
+    resp = urllib_request_helper.ext_open(
             opener,
             wp_edit_url,
             headers=(
@@ -221,7 +221,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             'post_status': 'all',
             }
     
-    resp = urllib_request_helper.open_with_headers(
+    resp = urllib_request_helper.ext_open(
             opener,
             wp_ajax_url,
             headers=(
