@@ -17,11 +17,26 @@
 
 assert str is not bytes
 
+import time
+from http import client as http_client
+
 DEFAULT_USER_AGENT_NAME = 'Python'
 DEFAULT_TIMEOUT = 20.0
 DEFAULT_RESPONSE_LIMIT = 10000000
 
-def ext_open(opener, *args, headers=None, new_headers=None, **kwargs):
+DEFAULT_ERROR_RETRY_LIST = (
+        http_client.BadStatusLine,
+        )
+DEFAULT_ERROR_RETRY_COUNT = 5
+DEFAULT_ERROR_RETRY_DELAY = 0.5
+DEFAULT_ERROR_RETRY_DELAY_MULTIPLIER = 2.0
+
+def ext_open(opener, *args,
+        headers=None, new_headers=None,
+        error_retry_list=None,
+        error_retry_count=None, error_retry_delay=None,
+        error_retry_delay_multiplier=None,
+        **kwargs):
     if headers is not None:
         spec_headers = headers
     else:
@@ -31,9 +46,32 @@ def ext_open(opener, *args, headers=None, new_headers=None, **kwargs):
         spec_headers = list(spec_headers)
         spec_headers += new_headers
     
+    if error_retry_list is None:
+        error_retry_list = DEFAULT_ERROR_RETRY_LIST
+    
+    if error_retry_count is None:
+        error_retry_count = DEFAULT_ERROR_RETRY_COUNT
+    
+    if error_retry_delay is None:
+        error_retry_delay = DEFAULT_ERROR_RETRY_DELAY
+    
+    if error_retry_delay_multiplier is None:
+        error_retry_delay_multiplier = DEFAULT_ERROR_RETRY_DELAY_MULTIPLIER
+    
     orig_headers = opener.addheaders
     opener.addheaders = spec_headers
     try:
-        return opener.open(*args, **kwargs)
+        while True:
+            try:
+                return opener.open(*args, **kwargs)
+            except error_retry_list:
+                if error_retry_count <= 0:
+                    raise
+                
+                error_retry_count -= 1
+                time.sleep(error_retry_delay)
+                error_retry_delay *= error_retry_delay_multiplier
+                
+                continue
     finally:
         opener.addheaders = orig_headers
