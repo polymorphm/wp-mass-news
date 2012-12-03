@@ -20,6 +20,7 @@ assert str is not bytes
 import sys
 import threading
 import json
+import csv
 from urllib import parse as url
 from http import cookiejar
 from urllib import request
@@ -260,6 +261,17 @@ def wp_post(*args, callback=None, **kwargs):
     t.daemon = True
     t.start()
 
+def acc_save(task_cfg, acc_row, excl_list):
+    if acc_row in excl_list:
+        return
+    
+    fd = task_cfg.out.get_fd(ext='accs.csv')
+    csv_writer = csv.writer(fd)
+    
+    csv_writer.writerow(acc_row)
+    fd.flush()
+    excl_list.append(acc_row)
+
 def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None):
     task_begin_handle = stack_context.wrap(task_begin_handle)
     task_end_handle = stack_context.wrap(task_end_handle)
@@ -268,8 +280,10 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     titles_iter = get_items.get_random_infinite_items(task_cfg.titles)
     content_iter = get_items.get_random_infinite_items(task_cfg.content)
     
+    acc_save_excl_list = []
+    
     def next_acc():
-        if task_cfg.acc_fmt == 'wp-0':
+        if 'wp-0' == task_cfg.acc_fmt:
             while True:
                 acc_row = next(raw_accs_iter)
                 
@@ -279,9 +293,9 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
                 
                 email, email_password, blog_url, username, password = acc_row
                 
-                return blog_url, username, password
+                return blog_url, username, password, acc_row
         
-        # if task_cfg.acc_fmt == 'wp-...':
+        # if 'wp-...' == task_cfg.acc_fmt:
         #  ...
         #  return
         
@@ -291,10 +305,16 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task = Task()
         
         task.i = task_i
-        task.blog_url, task.username, task.password = next_acc()
+        task.blog_url, task.username, task.password, acc_row = next_acc()
         task.title = next(titles_iter)
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name
+        
+        task.acc_save = lambda _acc_row=acc_row: acc_save(
+                task_cfg,
+                _acc_row,
+                acc_save_excl_list,
+                )
         
         task.task_begin_handle = task_begin_handle
         task.task_end_handle = task_end_handle

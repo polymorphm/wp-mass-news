@@ -66,6 +66,13 @@ def task_end_handle(task_cfg, task):
     task_cfg.out.write(task.result)
     task_cfg.out.write(anc, ext='anc.txt')
     
+    try:
+        acc_save = task.acc_save
+    except AttributeError:
+        pass
+    else:
+        acc_save()
+    
     msg = '[{!r}/{!r}] {!r}: result: {!r}'.format(
             task.i, task_cfg.count, task.blog_url, task.result)
     
