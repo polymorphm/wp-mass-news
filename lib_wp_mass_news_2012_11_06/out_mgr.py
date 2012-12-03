@@ -96,11 +96,9 @@ class OutMgr(object):
         self._out_file = normalize_ext(out_file, self._ext)
         self._fd_map = {}
     
-    def write(self, text, ext=None, end=None):
+    def get_fd(self, ext=None):
         if ext is None:
             ext = self._ext
-        if end is None:
-            end = '\n'
         
         out_file = self._out_file
         
@@ -111,9 +109,17 @@ class OutMgr(object):
             out_file = change_ext(out_file, ext)
         
         if ext in self._fd_map:
-            fd = self._fd_map[ext]
-        else:
-            fd = self._fd_map[ext] = create_file(out_file)
+            return self._fd_map[ext]
+        
+        self._fd_map[ext] = fd = create_file(out_file)
+        
+        return fd
+    
+    def write(self, text, ext=None, end=None):
+        if end is None:
+            end = '\n'
+        
+        fd = self.get_fd(ext=ext)
         
         fd.write('{}{}'.format(text, end))
         fd.flush()
