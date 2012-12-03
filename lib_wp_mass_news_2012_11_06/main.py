@@ -117,6 +117,12 @@ def main():
         raise UserError('config error: {}'.format(e))
     
     task_cfg.out = out_mgr.OutMgr(out_file=out_file)
+    task_cfg.out.get_fd()
+    task_cfg.out.get_fd(ext='log')
+    task_cfg.out.get_fd(ext='anc.txt')
+    task_cfg.out.get_fd(ext='err.log')
+    task_cfg.out.get_fd(ext='err-tb.log')
+    task_cfg.out.get_fd(ext='accs.csv')
     
     if use_tor is None:
         use_tor == False
