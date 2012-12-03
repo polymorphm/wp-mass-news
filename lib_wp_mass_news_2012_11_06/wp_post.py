@@ -308,6 +308,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         
         task.i = task_i
         task.blog_url, task.username, task.password, task._acc_row = next_acc()
+        task.blog_id = task.blog_url
         task.title = next(titles_iter)
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name

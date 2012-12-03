@@ -35,7 +35,7 @@ class TaskConfig:
     pass
 
 def task_begin_handle(task_cfg, task):
-    msg = '[{!r}/{!r}] {!r}: begin'.format(task.i, task_cfg.count, task.blog_url)
+    msg = '[{!r}/{!r}] {!r}: begin'.format(task.i, task_cfg.count, task.blog_id)
     
     print(msg)
     task_cfg.out.write(msg, ext='log')
@@ -44,7 +44,7 @@ def task_end_handle(task_cfg, task):
     if task.error is not None:
         e_type, e_value, e_tb = task.error
         msg = '[{!r}/{!r}] {!r}: error: {!r}: {}'.format(
-                task.i, task_cfg.count, task.blog_url, e_type, e_value)
+                task.i, task_cfg.count, task.blog_id, e_type, e_value)
         tb_msg = '{}\n\n{}\n\n'.format(
                 msg, 
                 '\n'.join(map(
@@ -74,7 +74,7 @@ def task_end_handle(task_cfg, task):
         acc_save()
     
     msg = '[{!r}/{!r}] {!r}: result: {!r}'.format(
-            task.i, task_cfg.count, task.blog_url, task.result)
+            task.i, task_cfg.count, task.blog_id, task.result)
     
     print(msg)
     task_cfg.out.write(msg, ext='log')
