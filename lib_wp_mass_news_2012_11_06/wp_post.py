@@ -68,7 +68,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             request.HTTPCookieProcessor(cookiejar=cookies),
             )
     
-    # *** PHASE auth ***
+    # *** PHASE: auth ***
     
     resp = urllib_request_helper.ext_open(
             opener,
@@ -89,7 +89,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != wp_admin_url:
         raise AuthWpError('wp auth error')
     
-    # *** PHASE get params ***
+    # *** PHASE: get params ***
     
     resp = urllib_request_helper.ext_open(
             opener,
@@ -134,7 +134,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     params = get_params()
     
-    # ***PHASE autosave  ***
+    # *** PHASE: autosave ***
     
     post_data = {
             'action': 'autosave',
@@ -166,7 +166,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != wp_ajax_url:
         raise WpError('wp autosave error')
     
-    # *** PHASE get edit-param ***
+    # *** PHASE: get edit-param ***
     
     resp = urllib_request_helper.ext_open(
             opener,
@@ -193,7 +193,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     
     inline_edit_param = inline_edit_param_node.attrs['value']
     
-    # *** PHASE publish ***
+    # *** PHASE: publish ***
     
     post_data = {
             'post_title': title,
