@@ -151,7 +151,7 @@ def lj_post_blocking(username=None, password=None,
             )
     
     if resp.getcode() != 200 or resp.geturl() == lj_update_url:
-        raise AuthLjError('lj publishing error')
+        raise PublishLjError('lj publishing error')
     
     # *** END ***
     
