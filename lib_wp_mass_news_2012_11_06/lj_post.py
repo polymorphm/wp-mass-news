@@ -55,6 +55,9 @@ def lj_post_blocking(username=None, password=None,
     assert title is not None
     assert content is not None
     
+    if tags is None:
+        tags = ''
+    
     if ua_name is None:
         ua_name = urllib_request_helper.DEFAULT_USER_AGENT_NAME
     
