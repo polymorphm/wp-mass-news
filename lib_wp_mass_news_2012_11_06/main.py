@@ -100,18 +100,30 @@ def main():
         config.read(args.cfg, encoding='utf-8')
         
         task_cfg.ua_name = config.get(DEFAULT_CONFIG_SECTION, 'ua-name', fallback=None)
-        use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
+        
+        task_cfg.use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
+        if task_cfg.use_tor is None:
+            task_cfg.use_tor == False
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
+        
         out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
         if out_file is not None:
             out_file = os.path.join(cfg_dir, out_file)
         
         task_cfg.accs = os.path.join(cfg_dir, config.get(DEFAULT_CONFIG_SECTION, 'accs'))
+        
         task_cfg.acc_fmt = config.get(DEFAULT_CONFIG_SECTION, 'acc-fmt')
+        
         task_cfg.count = config.getint(DEFAULT_CONFIG_SECTION, 'count')
+        
         task_cfg.titles = config.get(DEFAULT_CONFIG_SECTION, 'titles')
         if task_cfg.titles != '__use_first_line__':
             task_cfg.titles = os.path.join(cfg_dir, task_cfg.titles)
+        
+        task_cfg.tags = config.get(DEFAULT_CONFIG_SECTION, 'tags', fallback=None)
+        if task_cfg.tags is not None:
+            task_cfg.tags = os.path.join(cfg_dir, task_cfg.tags)
+        
         task_cfg.content = os.path.join(cfg_dir, config.get(DEFAULT_CONFIG_SECTION, 'content'))
     except configparser.Error as e:
         raise UserError('config error: {}'.format(e))
@@ -124,10 +136,7 @@ def main():
     task_cfg.out.get_fd(ext='err-tb.log')
     task_cfg.out.get_fd(ext='accs.csv')
     
-    if use_tor is None:
-        use_tor == False
-    
-    if use_tor:
+    if task_cfg.use_tor:
         # TODO: this is dirty hack :-( .. need pure HTTP-over-SOCKS implementation
         
         from socks import PROXY_TYPE_SOCKS5, setdefaultproxy, wrapmodule as socks_wrap
