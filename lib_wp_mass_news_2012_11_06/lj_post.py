@@ -30,8 +30,8 @@ from . import urllib_request_helper
 from . import lib_html_parse
 html_parse = lib_html_parse.import_module('html_parse')
 
-LJ_HTTPS_URL = 'https://www.livejournal.com/'
-LJ_HTTP_URL = 'http://www.livejournal.com/'
+LJ_HTTPS_URL = 'https://www.livejournal.com'
+LJ_HTTP_URL = 'http://www.livejournal.com'
 
 class LjError(Exception):
     pass
