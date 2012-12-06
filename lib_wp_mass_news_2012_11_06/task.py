@@ -18,22 +18,33 @@
 assert str is not bytes
 
 
-from tornado import stack_context, gen
+import datetime
+from tornado import ioloop, stack_context, gen
 
 DEFAULT_CONCURRENCE = 20
 
 @gen.engine
-def task_thread(task_func, task_list, callback=None):
+def task_thread(task_func, task_list, delay=None, callback=None):
     callback = stack_context.wrap(callback)
     
     for task in task_list:
+        if delay is not None:
+            delay_wait_key = object()
+            ioloop.IOLoop.instance().add_timeout(
+                    datetime.timedelta(seconds=delay),
+                    (yield gen.Callback(delay_wait_key)),
+                    )
+        
         yield gen.Task(task_func, task)
+        
+        if delay is not None:
+            yield gen.Wait(delay_wait_key)
     
     if callback is not None:
         callback()
 
 @gen.engine
-def bulk_task(task_func, task_list, conc=None, callback=None):
+def bulk_task(task_func, task_list, conc=None, delay=None, callback=None):
     callback = stack_context.wrap(callback)
     
     if conc is None:
@@ -45,7 +56,7 @@ def bulk_task(task_func, task_list, conc=None, callback=None):
     for thread_i in range(conc):
         wait_key = object()
         wait_key_list.append(wait_key)
-        task_thread(task_func, task_iter,
+        task_thread(task_func, task_iter, delay=delay,
                 callback=(yield gen.Callback(wait_key)))
     
     for wait_key in wait_key_list:
