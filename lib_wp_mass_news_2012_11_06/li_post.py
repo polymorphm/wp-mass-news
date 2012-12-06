@@ -21,6 +21,7 @@ import sys
 import threading
 import json
 import csv
+import random
 from urllib import parse as url
 from http import cookiejar
 from urllib import request
@@ -32,6 +33,9 @@ html_parse = lib_html_parse.import_module('html_parse')
 
 LI_HTTPS_URL = 'https://www.liveinternet.ru'
 LI_HTTP_URL = 'http://www.liveinternet.ru'
+
+TAGS_RANDOM_MU = 4
+TAGS_RANDOM_SIGMA = 1
 
 class LiError(Exception):
     pass
@@ -97,6 +101,8 @@ def li_post_blocking(username=None, password=None,
             'users/{}/'.format(url.quote_plus(user_id)))
     
     # *** PHASE: publishing ***
+    
+    print('*** tags is {!r} ***'.format(tags))
     
     resp = urllib_request_helper.ext_open(
             opener,
@@ -184,7 +190,10 @@ def get_li_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     
     raw_accs_iter = get_items.get_random_infinite_items(task_cfg.accs, is_csv=True)
     titles_iter = get_items.get_random_infinite_items(task_cfg.titles)
-    #tags_iter = get_items.get_random_infinite_items(task_cfg.tags)
+    if task_cfg.tags is not None:
+        tags_iter = get_items.get_random_infinite_items(task_cfg.tags)
+    else:
+        tags_iter = None
     content_iter = get_items.get_random_infinite_items(task_cfg.content)
     
     acc_save_excl_list = []
@@ -218,7 +227,16 @@ def get_li_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name
         
-        # TODO: tags
+        if tags_iter is not None:
+            tags_list = []
+            for tag_i in range(max(round(random.gauss(TAGS_RANDOM_MU, TAGS_RANDOM_SIGMA)), 0)):
+                tag = next(tags_iter)
+                if tag in tags_list:
+                    continue
+                tags_list.append(tag)
+            task.tags = ', '.join(tags_list)
+        else:
+            task.tags = None
         
         task.acc_save = lambda _task=task: li_acc_save(
                 task_cfg,
@@ -243,6 +261,7 @@ def li_post_task(task, callback=None):
             username=task.username,
             password=task.password,
             title=task.title,
+            tags=task.tags,
             content=task.content,
             ua_name=task.ua_name
             )).args
