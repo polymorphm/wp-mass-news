@@ -104,7 +104,10 @@ def main():
         task_cfg.use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
         if task_cfg.use_tor is None:
             task_cfg.use_tor == False
+        
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
+        
+        delay = config.getfloat(DEFAULT_CONFIG_SECTION, 'delay', fallback=None)
         
         out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
         if out_file is not None:
@@ -168,6 +171,7 @@ def main():
             task_func,
             task_list,
             conc=conc,
+            delay=delay,
             callback=lambda: finish_handle(task_cfg),
             )
     
