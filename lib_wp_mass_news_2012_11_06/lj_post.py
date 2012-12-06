@@ -77,6 +77,7 @@ def lj_post_blocking(username=None, password=None,
             lj_login_url,
             headers=(
                 ('User-Agent', ua_name),
+                ('Referer', lj_login_url),
                 ),
             data=url.urlencode({
                     'user': username,
@@ -131,6 +132,7 @@ def lj_post_blocking(username=None, password=None,
             lj_update_url,
             headers=(
                 ('User-Agent', ua_name),
+                ('Referer', lj_update_url),
                 ),
             data=url.urlencode({
                     'timezone': params['timezone'],
