@@ -123,6 +123,15 @@ def li_post_blocking(username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != addpost_url:
         raise PublishLiError('li publishing error')
     
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode(
+            'windows-1251', 'replace')
+    refresh_nodes = tuple(html_parse.find_tags(
+            (html_parse.html_parse(data),),
+            'meta', in_attrs={'http-equiv': 'Refresh'}))
+    
+    if not refresh_nodes:
+        raise PublishLiError('li publishing error (may be limit?)')
+    
     # *** PHASE: get post url ***
     
     resp = urllib_request_helper.ext_open(
@@ -136,13 +145,12 @@ def li_post_blocking(username=None, password=None,
     
     data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode(
             'windows-1251', 'replace')
-    
     post_link_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
             'a', in_attrs={'class': 'GL_LNXMAR22'}))
     
     if not post_link_nodes:
-        raise LiError('li publishing error (PHASE: get post url)')
+        raise PublishLiError('li publishing error (PHASE: get post url)')
     
     post_url = post_link_nodes[0].attrs['href']
     
