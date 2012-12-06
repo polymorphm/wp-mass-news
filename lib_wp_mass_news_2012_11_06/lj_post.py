@@ -42,9 +42,6 @@ class AuthLjError(LjError):
 class PublishLjError(LjError):
     pass
 
-class LjResult:
-    pass
-
 class Task:
     pass
 
