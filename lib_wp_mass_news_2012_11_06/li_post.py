@@ -102,8 +102,6 @@ def li_post_blocking(username=None, password=None,
     
     # *** PHASE: publishing ***
     
-    print('*** tags is {!r} ***'.format(tags))
-    
     resp = urllib_request_helper.ext_open(
             opener,
             addpost_url,
