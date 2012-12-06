@@ -75,7 +75,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_login_url,
             headers=(
                 ('User-Agent', ua_name),
-            ),
+                ),
             data=url.urlencode({
                     'wp-submit': 'Log In',
                     'testcookie': '1',
@@ -96,7 +96,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_post_url,
             headers=(
                 ('User-Agent', ua_name),
-            ),
+                ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
@@ -158,7 +158,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             headers=(
                 ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
-            ),
+                ),
             data=url.urlencode(post_data).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -173,7 +173,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_edit_url,
             headers=(
                 ('User-Agent', ua_name),
-            ),
+                ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
@@ -228,7 +228,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             headers=(
                 ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
-            ),
+                ),
             data=url.urlencode(post_data).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -285,7 +285,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     acc_save_excl_list = []
     
     def next_acc():
-        if 'wp-0' == task_cfg.acc_fmt:
+        if 'wp:0' == task_cfg.acc_fmt:
             while True:
                 acc_row = next(raw_accs_iter)
                 
@@ -297,7 +297,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
                 
                 return blog_url, username, password, acc_row
         
-        # if 'wp-...' == task_cfg.acc_fmt:
+        # if 'wp:...' == task_cfg.acc_fmt:
         #  ...
         #  return
         

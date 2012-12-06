@@ -99,7 +99,7 @@ def main():
     try:
         config.read(args.cfg, encoding='utf-8')
         
-        task_cfg.ua_name = config.get(DEFAULT_CONFIG_SECTION, 'ua-name', fallback=None)
+        task_cfg.ua_name = config.get(DEFAULT_CONFIG_SECTION, 'ua_name', fallback=None)
         
         task_cfg.use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
         if task_cfg.use_tor is None:
@@ -112,7 +112,7 @@ def main():
         
         task_cfg.accs = os.path.join(cfg_dir, config.get(DEFAULT_CONFIG_SECTION, 'accs'))
         
-        task_cfg.acc_fmt = config.get(DEFAULT_CONFIG_SECTION, 'acc-fmt')
+        task_cfg.acc_fmt = config.get(DEFAULT_CONFIG_SECTION, 'acc_fmt')
         
         task_cfg.count = config.getint(DEFAULT_CONFIG_SECTION, 'count')
         
@@ -150,11 +150,16 @@ def main():
             task_end_handle=lambda task: task_end_handle(task_cfg, task),
             )
     
-    if task_cfg.acc_fmt.startswith('lj-'):
+    if task_cfg.acc_fmt.startswith('lj:'):
         from . import lj_post
         
         task_func = lj_post.lj_post_task
         task_list = get_task_list(lj_post.get_lj_post_task_list)
+    elif task_cfg.acc_fmt.startswith('li:'):
+        from . import li_post
+        
+        task_func = li_post.li_post_task
+        task_list = get_task_list(li_post.get_li_post_task_list)
     else:
         task_func = wp_post.wp_post_task
         task_list = get_task_list(wp_post.get_wp_post_task_list)

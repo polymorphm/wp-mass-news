@@ -30,22 +30,22 @@ from . import urllib_request_helper
 from . import lib_html_parse
 html_parse = lib_html_parse.import_module('html_parse')
 
-LJ_HTTPS_URL = 'https://www.livejournal.com'
-LJ_HTTP_URL = 'http://www.livejournal.com'
+LI_HTTPS_URL = 'https://www.liveinternet.ru'
+LI_HTTP_URL = 'http://www.liveinternet.ru'
 
-class LjError(Exception):
+class LiError(Exception):
     pass
 
-class AuthLjError(LjError):
+class AuthLiError(LiError):
     pass
 
-class PublishLjError(LjError):
+class PublishLiError(LiError):
     pass
 
 class Task:
     pass
 
-def lj_post_blocking(username=None, password=None,
+def li_post_blocking(username=None, password=None,
         title=None, content=None, tags=None, ua_name=None):
     assert username is not None
     assert password is not None
@@ -58,8 +58,8 @@ def lj_post_blocking(username=None, password=None,
     if ua_name is None:
         ua_name = urllib_request_helper.DEFAULT_USER_AGENT_NAME
     
-    lj_login_url = url.urljoin(LJ_HTTPS_URL, 'login.bml?ret=1')
-    lj_update_url = url.urljoin(LJ_HTTP_URL, 'update.bml')
+    li_login_url = url.urljoin(LI_HTTPS_URL, 'member.php')
+    li_pda_url = url.urljoin(LI_HTTPS_URL, 'interface/pda/')
     
     cookies = cookiejar.CookieJar()
     opener = request.build_opener(
@@ -70,115 +70,102 @@ def lj_post_blocking(username=None, password=None,
     
     resp = urllib_request_helper.ext_open(
             opener,
-            lj_login_url,
+            li_login_url,
             headers=(
                 ('User-Agent', ua_name),
+                ('Referer', LI_HTTPS_URL),
                 ),
             data=url.urlencode({
-                    'user': username,
-                    'remember_me': '1',
-                    'ref': lj_update_url,
+                    'username': username,
                     'password': password,
-                    'action:login': 'Log in',
+                    'charset': 'utf',
+                    'action': 'login',
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
-    if resp.getcode() != 200 or resp.geturl() != lj_update_url:
-        raise AuthLjError('lj auth error')
+    if resp.getcode() != 200 or \
+            (resp.geturl() != LI_HTTPS_URL and resp.geturl() != LI_HTTPS_URL + '/'):
+        raise AuthLiError('li auth error')
     
     # *** PHASE: get params ***
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
-    
-    form_html_nodes = tuple(html_parse.find_tags(
-            (html_parse.html_parse(data),),
-            'form',
-            attrs={
-                    'id': 'post',
-                    'method': 'post',
-                    'action': '',
-                    },
-            ))
-    
-    def get_params():
-        params = {}
-        for node in html_parse.find_tags(
-                form_html_nodes,
-                'input',
-                ):
-            name = node.attrs.get('name')
-            if not name:
-                continue
-            value = node.attrs.get('value')
-            if not value:
-                continue
-            
-            params[name] = value
-        
-        return params
-    
-    params = get_params()
+    user_id = cookies._cookies['www.liveinternet.ru']['/']['bbuserid'].value
+    addpost_url = url.urljoin(li_pda_url,
+            '?jid={}&act=addpostform'.format(url.quote_plus(user_id)))
+    blog_url = url.urljoin(LI_HTTPS_URL,
+            'users/{}/'.format(url.quote_plus(user_id)))
     
     # *** PHASE: publishing ***
     
     resp = urllib_request_helper.ext_open(
             opener,
-            lj_update_url,
+            addpost_url,
             headers=(
                 ('User-Agent', ua_name),
+                ('Referer', addpost_url),
                 ),
             data=url.urlencode({
-                    'timezone': params['timezone'],
-                    'time': params['time'],
-                    'subject': title,
-                    'security': 'public',
-                    'rte_on': params['rte_on'],
-                    'prop_taglist': tags,
-                    'prop_adult_content': 'default',
-                    'postto': 'journal',
-                    'postas': 'remote',
-                    'lj_form_auth': params['lj_form_auth'],
-                    'date_format': params['date_format'],
-                    'date_diff': params['date_diff'],
-                    'date': params['date'],
-                    'custom_time': params['custom_time'],
-                    'comment_settings': 'default',
-                    'body': content,
-                    'action:update': '1',         
+                    'tags': tags.encode('windows-1251', 'replace'),
+                    'postmessage': content.encode('windows-1251', 'replace'),
+                    'postheader': title.encode('windows-1251', 'replace'),
+                    'jid': user_id,
+                    'close_level': '0',
+                    'act': 'addpost',
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
-    if resp.getcode() != 200 or resp.geturl() == lj_update_url:
-        raise PublishLjError('lj publishing error')
+    if resp.getcode() != 200 or resp.geturl() != addpost_url:
+        raise PublishLiError('li publishing error')
+    
+    # *** PHASE: get post url ***
+    
+    resp = urllib_request_helper.ext_open(
+            opener,
+            blog_url,
+            headers=(
+                ('User-Agent', ua_name),
+                ),
+            timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            )
+    
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode(
+            'windows-1251', 'replace')
+    
+    post_link_nodes = tuple(html_parse.find_tags(
+            (html_parse.html_parse(data),),
+            'a', in_attrs={'class': 'GL_LNXMAR22'}))
+    
+    if not post_link_nodes:
+        raise LiError('li publishing error (PHASE: get post url)')
+    
+    post_url = post_link_nodes[0].attrs['href']
     
     # *** END ***
     
-    post_url = resp.geturl()
-    
     return post_url
 
-def lj_post(*args, callback=None, **kwargs):
+def li_post(*args, callback=None, **kwargs):
     callback = stack_context.wrap(callback)
     
-    def lj_post_thread():
+    def li_post_thread():
         result = None
         error = None
         
         try:
-            result = lj_post_blocking(*args, **kwargs)
+            result = li_post_blocking(*args, **kwargs)
         except:
             error = sys.exc_info()
         
         if callback is not None:
             ioloop.IOLoop.instance().add_callback(lambda: callback(result, error))
     
-    t = threading.Thread(target=lj_post_thread)
+    t = threading.Thread(target=li_post_thread)
     t.daemon = True
     t.start()
 
-def lj_acc_save(task_cfg, task, excl_list):
+def li_acc_save(task_cfg, task, excl_list):
     acc_row = task._acc_row
     
     if acc_row in excl_list:
@@ -191,18 +178,19 @@ def lj_acc_save(task_cfg, task, excl_list):
     fd.flush()
     excl_list.append(acc_row)
 
-def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None):
+def get_li_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None):
     task_begin_handle = stack_context.wrap(task_begin_handle)
     task_end_handle = stack_context.wrap(task_end_handle)
     
     raw_accs_iter = get_items.get_random_infinite_items(task_cfg.accs, is_csv=True)
     titles_iter = get_items.get_random_infinite_items(task_cfg.titles)
+    #tags_iter = get_items.get_random_infinite_items(task_cfg.tags)
     content_iter = get_items.get_random_infinite_items(task_cfg.content)
     
     acc_save_excl_list = []
     
     def next_acc():
-        if 'lj:0' == task_cfg.acc_fmt:
+        if 'li:0' == task_cfg.acc_fmt:
             while True:
                 acc_row = next(raw_accs_iter)
                 
@@ -214,7 +202,7 @@ def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
                 
                 return username, password, acc_row
         
-        # if 'lj:...' == task_cfg.acc_fmt:
+        # if 'li:...' == task_cfg.acc_fmt:
         #  ...
         #  return
         
@@ -225,12 +213,14 @@ def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         
         task.i = task_i
         task.username, task.password, task._acc_row = next_acc()
-        task.blog_id = 'lj:{}'.format(task.username)
+        task.blog_id = 'li:{}'.format(task.username)
         task.title = next(titles_iter)
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name
         
-        task.acc_save = lambda _task=task: lj_acc_save(
+        # TODO: tags
+        
+        task.acc_save = lambda _task=task: li_acc_save(
                 task_cfg,
                 _task,
                 acc_save_excl_list,
@@ -242,14 +232,14 @@ def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         yield task
 
 @gen.engine
-def lj_post_task(task, callback=None):
+def li_post_task(task, callback=None):
     callback = stack_context.wrap(callback)
     
     if task.task_begin_handle is not None:
         task.task_begin_handle(task)
     
     task.result, task.error = (yield gen.Task(
-            lj_post,
+            li_post,
             username=task.username,
             password=task.password,
             title=task.title,
