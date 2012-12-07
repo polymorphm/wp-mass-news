@@ -40,9 +40,10 @@ def task_thread(task_func, task_list,
         
         if error_delay is not None:
             error_delay_wait_key = object()
+            error_delay_cb = yield gen.Callback(error_delay_wait_key)
             error_delay_id = io_loop.add_timeout(
                     datetime.timedelta(seconds=error_delay),
-                    (yield gen.Callback(error_delay_wait_key)),
+                    error_delay_cb,
                     )
         
         is_error = yield gen.Task(task_func, task)
@@ -51,10 +52,11 @@ def task_thread(task_func, task_list,
             yield gen.Wait(delay_wait_key)
         
         if error_delay is not None:
-            if is_error:
-                yield gen.Wait(error_delay_wait_key)
-            else:
+            if not is_error:
                 io_loop.remove_timeout(error_delay_id)
+                error_delay_cb()
+            
+            yield gen.Wait(error_delay_wait_key)
     
     if callback is not None:
         callback()
