@@ -283,4 +283,4 @@ def lj_post_task(task, callback=None):
         task.task_end_handle(task)
     
     if callback is not None:
-        callback()
+        callback(task.error)

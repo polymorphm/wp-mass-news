@@ -109,6 +109,8 @@ def main():
         
         delay = config.getfloat(DEFAULT_CONFIG_SECTION, 'delay', fallback=None)
         
+        error_delay = config.getfloat(DEFAULT_CONFIG_SECTION, 'error_delay', fallback=None)
+        
         out_file = config.get(DEFAULT_CONFIG_SECTION, 'out', fallback=None)
         if out_file is not None:
             out_file = os.path.join(cfg_dir, out_file)
@@ -172,6 +174,7 @@ def main():
             task_list,
             conc=conc,
             delay=delay,
+            error_delay=error_delay,
             callback=lambda: finish_handle(task_cfg),
             )
     
