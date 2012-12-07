@@ -28,17 +28,19 @@ def task_thread(task_func, task_list,
         delay=None, error_delay=None, callback=None):
     callback = stack_context.wrap(callback)
     
+    io_loop = ioloop.IOLoop.instance()
+    
     for task in task_list:
         if delay is not None:
             delay_wait_key = object()
-            ioloop.IOLoop.instance().add_timeout(
+            io_loop.add_timeout(
                     datetime.timedelta(seconds=delay),
                     (yield gen.Callback(delay_wait_key)),
                     )
         
         if error_delay is not None:
             error_delay_wait_key = object()
-            ioloop.IOLoop.instance().add_timeout(
+            error_delay_id = io_loop.add_timeout(
                     datetime.timedelta(seconds=error_delay),
                     (yield gen.Callback(error_delay_wait_key)),
                     )
@@ -48,8 +50,11 @@ def task_thread(task_func, task_list,
         if delay is not None:
             yield gen.Wait(delay_wait_key)
         
-        if error_delay is not None and is_error:
-            yield gen.Wait(error_delay_wait_key)
+        if error_delay is not None:
+            if is_error:
+                yield gen.Wait(error_delay_wait_key)
+            else:
+                io_loop.remove_timeout(error_delay_id)
     
     if callback is not None:
         callback()
