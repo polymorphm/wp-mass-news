@@ -21,7 +21,7 @@ import time
 from http import client as http_client
 
 DEFAULT_USER_AGENT_NAME = 'Python'
-DEFAULT_TIMEOUT = 20.0
+DEFAULT_TIMEOUT = 60.0
 DEFAULT_RESPONSE_LIMIT = 10000000
 
 DEFAULT_ERROR_RETRY_LIST = (
