@@ -20,6 +20,7 @@ assert str is not bytes
 
 import datetime
 from tornado import ioloop, stack_context, gen
+import yieldpoints
 
 DEFAULT_CONCURRENCE = 20
 
@@ -40,10 +41,9 @@ def task_thread(task_func, task_list,
         
         if error_delay is not None:
             error_delay_wait_key = object()
-            error_delay_cb = yield gen.Callback(error_delay_wait_key)
             error_delay_id = io_loop.add_timeout(
                     datetime.timedelta(seconds=error_delay),
-                    error_delay_cb,
+                    (yield gen.Callback(error_delay_wait_key)),
                     )
         
         is_error = yield gen.Task(task_func, task)
@@ -52,11 +52,11 @@ def task_thread(task_func, task_list,
             yield gen.Wait(delay_wait_key)
         
         if error_delay is not None:
-            if not is_error:
+            if is_error:
+                yield gen.Wait(error_delay_wait_key)
+            else:
                 io_loop.remove_timeout(error_delay_id)
-                error_delay_cb()
-            
-            yield gen.Wait(error_delay_wait_key)
+                yield yieldpoints.Cancel(error_delay_wait_key)
     
     if callback is not None:
         callback()

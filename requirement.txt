@@ -1,3 +1,4 @@
 SocksiPy-branch==1.02
 distribute==0.6.32
 tornado==2.4.1
+yieldpoints==0.1
