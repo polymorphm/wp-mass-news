@@ -75,6 +75,11 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_login_url,
             headers=(
                 ('User-Agent', ua_name),
+                
+                # header-line for Blog.Com:
+                ('Accept',
+                        'text/html,application/xhtml+xml,'
+                        'application/xml;q=0.9,*/*;q=0.8'),
                 ),
             data=url.urlencode({
                     'wp-submit': 'Log In',
@@ -96,6 +101,11 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_post_url,
             headers=(
                 ('User-Agent', ua_name),
+                
+                # header-line for Blog.Com:
+                ('Accept',
+                        'text/html,application/xhtml+xml,'
+                        'application/xml;q=0.9,*/*;q=0.8'),
                 ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -158,6 +168,11 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             headers=(
                 ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
+                
+                # header-line for Blog.Com:
+                ('Accept',
+                        'text/html,application/xhtml+xml,'
+                        'application/xml;q=0.9,*/*;q=0.8'),
                 ),
             data=url.urlencode(post_data).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
@@ -173,6 +188,11 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             wp_edit_url,
             headers=(
                 ('User-Agent', ua_name),
+                
+                # header-line for Blog.Com:
+                ('Accept',
+                        'text/html,application/xhtml+xml,'
+                        'application/xml;q=0.9,*/*;q=0.8'),
                 ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
@@ -228,6 +248,11 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
             headers=(
                 ('User-Agent', ua_name),
                 ('X-Requested-With', 'XMLHttpRequest'),
+                
+                # header-line for Blog.Com:
+                ('Accept',
+                        'text/html,application/xhtml+xml,'
+                        'application/xml;q=0.9,*/*;q=0.8'),
                 ),
             data=url.urlencode(post_data).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
