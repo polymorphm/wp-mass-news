@@ -89,7 +89,8 @@ def li_post_blocking(username=None, password=None,
             )
     
     if resp.getcode() != 200 or \
-            (resp.geturl() != LI_HTTPS_URL and resp.geturl() != LI_HTTPS_URL + '/'):
+            (resp.geturl() != LI_HTTPS_URL and resp.geturl() != LI_HTTPS_URL + '/' and
+                    resp.geturl() != url.urljoin(LI_HTTP_URL, 'top/')):
         raise AuthLiError('li auth error')
     
     # *** PHASE: get params ***
