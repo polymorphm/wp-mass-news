@@ -23,6 +23,7 @@ import configparser
 import os, os.path
 import traceback
 import html
+import weakref
 from tornado import ioloop
 from . import task, wp_post, out_mgr
 
@@ -36,16 +37,31 @@ class TaskConfig:
     pass
 
 def task_begin_handle(task_cfg, task):
-    msg = '[{!r}/{!r}] {!r}: begin'.format(task.i, task_cfg.count, task.blog_id)
+    try:
+        error_counter = task_cfg.task_error_counter[task]
+    except KeyError:
+        error_counter = 0
+    
+    msg = '[{!r}/{!r}, tr{!r}] {!r}: begin'.format(
+            task.i, task_cfg.count, error_counter, task.blog_id)
     
     print(msg)
     task_cfg.out.write(msg, ext='log')
 
 def task_end_handle(task_cfg, task):
+    try:
+        error_counter = task_cfg.task_error_counter[task]
+    except KeyError:
+        error_counter = 0
+    
     if task.error is not None:
+        task_cfg.task_error_counter[task] = error_counter + 1
+        if error_counter < task_cfg.error_retry_count:
+            task_cfg.error_retry_list.append(task)
+        
         e_type, e_value, e_tb = task.error
-        msg = '[{!r}/{!r}] {!r}: error: {!r}: {}'.format(
-                task.i, task_cfg.count, task.blog_id, e_type, e_value)
+        msg = '[{!r}/{!r}, tr{!r}] {!r}: error: {!r}: {}'.format(
+                task.i, task_cfg.count, error_counter, task.blog_id, e_type, e_value)
         tb_msg = '{}\n\n{}\n\n'.format(
                 msg, 
                 '\n'.join(map(
@@ -86,8 +102,8 @@ def task_end_handle(task_cfg, task):
     else:
         acc_save()
     
-    msg = '[{!r}/{!r}] {!r}: result: {!r}'.format(
-            task.i, task_cfg.count, task.blog_id, task_result)
+    msg = '[{!r}/{!r}, tr{!r}] {!r}: result: {!r}'.format(
+            task.i, task_cfg.count, error_counter, task.blog_id, task_result)
     
     print(msg)
     task_cfg.out.write(msg, ext='log')
@@ -138,6 +154,11 @@ def main():
         
         task_cfg.count = config.getint(DEFAULT_CONFIG_SECTION, 'count')
         
+        task_cfg.error_retry_count = config.getint(
+                DEFAULT_CONFIG_SECTION, 'error_retry_count', fallback=None)
+        if task_cfg.error_retry_count is None:
+            task_cfg.error_retry_count = 0
+        
         if not task_cfg.acc_fmt.startswith('ff:'):
             task_cfg.titles = config.get(DEFAULT_CONFIG_SECTION, 'titles')
         else:
@@ -161,6 +182,9 @@ def main():
     task_cfg.out.get_fd(ext='err.log')
     task_cfg.out.get_fd(ext='err-tb.log')
     task_cfg.out.get_fd(ext='accs.csv')
+    
+    task_cfg.task_error_counter = weakref.WeakKeyDictionary()
+    task_cfg.error_retry_list = []
     
     if task_cfg.use_tor:
         # TODO: this is dirty hack :-( .. need pure HTTP-over-SOCKS implementation
@@ -198,6 +222,7 @@ def main():
     task.bulk_task(
             task_func,
             task_list,
+            task_cfg.error_retry_list,
             conc=conc,
             delay=delay,
             error_delay=error_delay,
