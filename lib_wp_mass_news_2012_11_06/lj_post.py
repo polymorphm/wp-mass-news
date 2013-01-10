@@ -21,6 +21,7 @@ import sys
 import threading
 import json
 import csv
+import weakref
 import random
 from urllib import parse as url
 from http import cookiejar
@@ -36,6 +37,8 @@ LJ_HTTP_URL = 'http://www.livejournal.com'
 
 TAGS_RANDOM_MU = 4
 TAGS_RANDOM_SIGMA = 1
+
+_lj_acc_save_excl_list = weakref.WeakKeyDictionary()
 
 class LjError(Exception):
     pass
@@ -184,13 +187,17 @@ def lj_post(*args, callback=None, **kwargs):
     t.daemon = True
     t.start()
 
-def lj_acc_save(task_cfg, task, excl_list):
+def lj_acc_save(task_cfg, task):
+    fd = task_cfg.out.get_fd(ext='accs.csv')
+    try:
+        excl_list = _lj_acc_save_excl_list[fd]
+    except KeyError:
+        _lj_acc_save_excl_list[fd] = excl_list = []
     acc_row = task._acc_row
     
     if acc_row in excl_list:
         return
     
-    fd = task_cfg.out.get_fd(ext='accs.csv')
     csv_writer = csv.writer(fd)
     
     csv_writer.writerow(acc_row)
@@ -208,8 +215,6 @@ def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     else:
         tags_iter = None
     content_iter = get_items.get_random_infinite_items(task_cfg.content)
-    
-    acc_save_excl_list = []
     
     def next_acc():
         if 'lj:0' == task_cfg.acc_fmt:
@@ -254,7 +259,6 @@ def get_lj_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.acc_save = lambda _task=task: lj_acc_save(
                 task_cfg,
                 _task,
-                acc_save_excl_list,
                 )
         
         task.task_begin_handle = task_begin_handle
