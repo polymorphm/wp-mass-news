@@ -38,7 +38,7 @@ LI_HTTP_URL = 'http://www.liveinternet.ru'
 TAGS_RANDOM_MU = 4
 TAGS_RANDOM_SIGMA = 1
 
-_lj_acc_save_excl_list = weakref.WeakKeyDictionary()
+_li_acc_save_excl_list = weakref.WeakKeyDictionary()
 
 class LiError(Exception):
     pass
