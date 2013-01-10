@@ -21,7 +21,7 @@ import sys
 import threading
 import json
 import csv
-import random
+import weakref
 from urllib import parse as url
 from http import cookiejar
 from urllib import request
@@ -33,6 +33,8 @@ html_parse = lib_html_parse.import_module('html_parse')
 
 FF_HTTPS_URL = 'https://friendfeed.com'
 FF_HTTP_URL = 'http://friendfeed.com'
+
+_ff_acc_save_excl_list = weakref.WeakKeyDictionary()
 
 class FfError(Exception):
     pass
@@ -219,13 +221,17 @@ def ff_post(*args, callback=None, **kwargs):
     t.daemon = True
     t.start()
 
-def ff_acc_save(task_cfg, task, excl_list):
+def ff_acc_save(task_cfg, task):
+    fd = task_cfg.out.get_fd(ext='accs.csv')
+    try:
+        excl_list = _ff_acc_save_excl_list[fd]
+    except KeyError:
+        _ff_acc_save_excl_list[fd] = excl_list = []
     acc_row = task._acc_row
     
     if acc_row in excl_list:
         return
     
-    fd = task_cfg.out.get_fd(ext='accs.csv')
     csv_writer = csv.writer(fd)
     
     csv_writer.writerow(acc_row)
@@ -238,8 +244,6 @@ def get_ff_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     
     raw_accs_iter = get_items.get_random_infinite_items(task_cfg.accs, is_csv=True)
     content_iter = get_items.get_random_infinite_items(task_cfg.content)
-    
-    acc_save_excl_list = []
     
     def next_acc():
         if 'ff:0' == task_cfg.acc_fmt:
@@ -272,7 +276,6 @@ def get_ff_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.acc_save = lambda _task=task: ff_acc_save(
                 task_cfg,
                 _task,
-                acc_save_excl_list,
                 )
         
         task.task_begin_handle = task_begin_handle
