@@ -76,9 +76,9 @@ def li_post_blocking(username=None, password=None,
             opener,
             li_login_url,
             headers=(
-                ('User-Agent', ua_name),
-                ('Referer', LI_HTTPS_URL),
-                ),
+                    ('User-Agent', ua_name),
+                    ('Referer', LI_HTTPS_URL),
+                    ),
             data=url.urlencode({
                     'username': username,
                     'password': password,
@@ -107,9 +107,9 @@ def li_post_blocking(username=None, password=None,
             opener,
             addpost_url,
             headers=(
-                ('User-Agent', ua_name),
-                ('Referer', addpost_url),
-                ),
+                    ('User-Agent', ua_name),
+                    ('Referer', addpost_url),
+                    ),
             data=url.urlencode({
                     'tags': tags.encode('windows-1251', 'replace'),
                     'postmessage': content.encode('windows-1251', 'replace'),
@@ -139,8 +139,8 @@ def li_post_blocking(username=None, password=None,
             opener,
             blog_url,
             headers=(
-                ('User-Agent', ua_name),
-                ),
+                    ('User-Agent', ua_name),
+                    ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
             )
     
