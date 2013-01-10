@@ -6,4 +6,4 @@ wp-mass-news
 Branch status
 -------------
 
-Development branch.
+Beta branch.
