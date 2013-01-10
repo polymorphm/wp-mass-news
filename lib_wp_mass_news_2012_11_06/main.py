@@ -60,11 +60,23 @@ def task_end_handle(task_cfg, task):
         
         return
     
-    anc = '<a href="{}">{}</a>'.format(
-            html.escape(task.result), html.escape(task.title))
+    try:
+        task_result = task.result
+    except AttributeError:
+        task_result = None
     
-    task_cfg.out.write(task.result)
-    task_cfg.out.write(anc, ext='anc.txt')
+    try:
+        task_title = task.title
+    except AttributeError:
+        task_title = None
+    
+    if task_result is not None:
+        task_cfg.out.write(task_result)
+        
+        if task_title is not None:
+            anc = '<a href="{}">{}</a>'.format(
+                    html.escape(task_result), html.escape(task_title))
+            task_cfg.out.write(anc, ext='anc.txt')
     
     try:
         acc_save = task.acc_save
@@ -74,7 +86,7 @@ def task_end_handle(task_cfg, task):
         acc_save()
     
     msg = '[{!r}/{!r}] {!r}: result: {!r}'.format(
-            task.i, task_cfg.count, task.blog_id, task.result)
+            task.i, task_cfg.count, task.blog_id, task_result)
     
     print(msg)
     task_cfg.out.write(msg, ext='log')
@@ -121,8 +133,12 @@ def main():
         
         task_cfg.count = config.getint(DEFAULT_CONFIG_SECTION, 'count')
         
-        task_cfg.titles = config.get(DEFAULT_CONFIG_SECTION, 'titles')
-        if task_cfg.titles != '__use_first_line__':
+        if not task_cfg.acc_fmt.startswith('ff:'):
+            task_cfg.titles = config.get(DEFAULT_CONFIG_SECTION, 'titles')
+        else:
+            task_cfg.titles = config.get(DEFAULT_CONFIG_SECTION, 'titles', fallback=None)
+        
+        if task_cfg.titles is not None and task_cfg.titles != '__use_first_line__':
             task_cfg.titles = os.path.join(cfg_dir, task_cfg.titles)
         
         task_cfg.tags = config.get(DEFAULT_CONFIG_SECTION, 'tags', fallback=None)
@@ -165,6 +181,11 @@ def main():
         
         task_func = li_post.li_post_task
         task_list = get_task_list(li_post.get_li_post_task_list)
+    elif task_cfg.acc_fmt.startswith('ff:'):
+        from . import ff_post
+        
+        task_func = ff_post.ff_post_task
+        task_list = get_task_list(ff_post.get_ff_post_task_list)
     else:
         task_func = wp_post.wp_post_task
         task_list = get_task_list(wp_post.get_wp_post_task_list)
