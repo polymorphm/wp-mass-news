@@ -27,6 +27,7 @@ from tornado import ioloop
 from . import task, wp_post, out_mgr
 
 DEFAULT_CONFIG_SECTION = 'wp-mass-news'
+DEFAULT_TOR_PORT = 9050
 
 class UserError(Exception):
     pass
@@ -117,6 +118,10 @@ def main():
         if task_cfg.use_tor is None:
             task_cfg.use_tor == False
         
+        task_cfg.tor_port = config.getint(DEFAULT_CONFIG_SECTION, 'tor_port', fallback=None)
+        if task_cfg.tor_port is None:
+            task_cfg.tor_port = DEFAULT_TOR_PORT
+        
         conc = config.getint(DEFAULT_CONFIG_SECTION, 'conc', fallback=None)
         
         delay = config.getfloat(DEFAULT_CONFIG_SECTION, 'delay', fallback=None)
@@ -162,7 +167,7 @@ def main():
         
         from socks import PROXY_TYPE_SOCKS5, setdefaultproxy, wrapmodule as socks_wrap
         from http import client as http_client
-        setdefaultproxy(PROXY_TYPE_SOCKS5, 'localhost', 9050)
+        setdefaultproxy(PROXY_TYPE_SOCKS5, 'localhost', task_cfg.tor_port)
         socks_wrap(http_client)
     
     get_task_list = lambda get_task_list_func: get_task_list_func(
