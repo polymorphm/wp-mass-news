@@ -116,7 +116,7 @@ def main():
         
         task_cfg.use_tor = config.getboolean(DEFAULT_CONFIG_SECTION, 'use_tor', fallback=None)
         if task_cfg.use_tor is None:
-            task_cfg.use_tor == False
+            task_cfg.use_tor = False
         
         task_cfg.tor_port = config.getint(DEFAULT_CONFIG_SECTION, 'tor_port', fallback=None)
         if task_cfg.tor_port is None:
