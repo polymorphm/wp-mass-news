@@ -62,24 +62,34 @@ def task_thread(task_func, task_list,
         callback()
 
 @gen.engine
-def bulk_task(task_func, task_list,
+def bulk_task(task_func, task_list, error_retry_list,
         conc=None, delay=None, error_delay=None, callback=None):
     callback = stack_context.wrap(callback)
     
     if conc is None:
         conc = DEFAULT_CONCURRENCE
     
-    task_iter = iter(task_list)
-    wait_key_list = []
-    
-    for thread_i in range(conc):
-        wait_key = object()
-        wait_key_list.append(wait_key)
-        task_thread(task_func, task_iter, delay=delay, error_delay=error_delay,
-                callback=(yield gen.Callback(wait_key)))
-    
-    for wait_key in wait_key_list:
-        yield gen.Wait(wait_key)
+    is_first_time = True
+    while is_first_time or error_retry_list:
+        if is_first_time:
+            is_first_time = False
+            
+            task_iter = iter(task_list)
+        else:
+            error_retry_list_copy = error_retry_list[:]
+            error_retry_list[:] = ()
+            task_iter = iter(error_retry_list_copy)
+        
+        wait_key_list = []
+        
+        for thread_i in range(conc):
+            wait_key = object()
+            wait_key_list.append(wait_key)
+            task_thread(task_func, task_iter, delay=delay, error_delay=error_delay,
+                    callback=(yield gen.Callback(wait_key)))
+        
+        for wait_key in wait_key_list:
+            yield gen.Wait(wait_key)
     
     if callback is not None:
         callback()
