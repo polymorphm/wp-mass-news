@@ -29,6 +29,7 @@ from . import task, wp_post, out_mgr
 
 DEFAULT_CONFIG_SECTION = 'wp-mass-news'
 DEFAULT_TOR_PORT = 9050
+DEFAULT_TOR_HOSTNAME = '127.0.0.1'
 
 class UserError(Exception):
     pass
@@ -191,7 +192,7 @@ def main():
         
         from socks import PROXY_TYPE_SOCKS5, setdefaultproxy, wrapmodule as socks_wrap
         from http import client as http_client
-        setdefaultproxy(PROXY_TYPE_SOCKS5, 'localhost', task_cfg.tor_port)
+        setdefaultproxy(PROXY_TYPE_SOCKS5, DEFAULT_TOR_HOSTNAME, task_cfg.tor_port)
         socks_wrap(http_client)
     
     get_task_list = lambda get_task_list_func: get_task_list_func(
