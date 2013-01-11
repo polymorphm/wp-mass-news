@@ -28,8 +28,8 @@ from tornado import ioloop
 from . import task, wp_post, out_mgr
 
 DEFAULT_CONFIG_SECTION = 'wp-mass-news'
-DEFAULT_TOR_PORT = 9050
 DEFAULT_TOR_HOSTNAME = '127.0.0.1'
+DEFAULT_TOR_PORT = 9050
 
 class UserError(Exception):
     pass
