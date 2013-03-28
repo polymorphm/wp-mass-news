@@ -70,7 +70,7 @@ def csv_items_open(path):
         csv_reader = csv.reader(fd)
         
         for csv_row in csv_reader:
-            # TODO: for Python-3.3 -- need fix to PEP-0380
+            # TODO: for Python-3.3+ -- need fix to PEP-0380
             yield csv_row
 
 def items_open(path, is_csv=None):
@@ -105,7 +105,7 @@ def get_finite_items(path, is_csv=None):
 
 def get_infinite_items(path, is_csv=None):
     for item in itertools.cycle(items_open(path, is_csv=is_csv)):
-        # TODO: for Python-3.3 -- need fix to PEP-0380
+        # TODO: for Python-3.3+ -- need fix to PEP-0380
         yield item
 
 def get_random_finite_items(path, is_csv=None):
@@ -117,7 +117,7 @@ def get_random_finite_items(path, is_csv=None):
     random.shuffle(items)
     
     for item in items:
-        # TODO: for Python-3.3 -- need fix to PEP-0380
+        # TODO: for Python-3.3+ -- need fix to PEP-0380
         yield item
 
 def get_random_infinite_items(path, is_csv=None):
@@ -133,7 +133,7 @@ def get_random_infinite_items(path, is_csv=None):
         random.shuffle(items)
         
         for item in items:
-            # TODO: for Python-3.3 -- need fix to PEP-0380
+            # TODO: for Python-3.3+ -- need fix to PEP-0380
             yield item
 
 def clean_title(title):
@@ -153,7 +153,7 @@ def clean_title(title):
     
     return title
 
-def get_title_and_body(items_iter):
+def split_title_and_content(items_iter):
     for item in items_iter:
         spl_item = item.lstrip().split('\n', 1)
         
@@ -169,3 +169,16 @@ def get_title_and_body(items_iter):
             continue
         
         yield title, body
+
+def get_title_and_content(get_func, title_path, content_path):
+    content_iter = get_func(content_path)
+    
+    if title_path == '__use_first_line__':
+        for title, content in split_title_and_content(content_iter):
+            # TODO: for Python-3.3+ -- need fix to PEP-0380
+            yield title, content
+    
+    title_iter = get_func(title_path)
+    
+    while True:
+        yield next(title_iter), next(content_iter)
