@@ -311,8 +311,8 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
     task_end_handle = stack_context.wrap(task_end_handle)
     
     raw_accs_iter = get_items.get_random_infinite_items(task_cfg.accs, is_csv=True)
-    titles_iter = get_items.get_random_infinite_items(task_cfg.titles)
-    content_iter = get_items.get_random_infinite_items(task_cfg.content)
+    title_and_content_iter = get_items.get_title_and_content(\
+            get_items.get_random_infinite_items, task_cfg.titles, task_cfg.content)
     
     def next_acc():
         if 'wp:0' == task_cfg.acc_fmt:
@@ -339,8 +339,7 @@ def get_wp_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.i = task_i
         task.blog_url, task.username, task.password, task._acc_row = next_acc()
         task.blog_id = task.blog_url
-        task.title = next(titles_iter)
-        task.content = next(content_iter)
+        task.title, task.content = next(title_and_content_iter)
         task.ua_name = task_cfg.ua_name
         
         task.acc_save = lambda _task=task: wp_acc_save(
