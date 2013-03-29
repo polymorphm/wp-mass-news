@@ -17,7 +17,6 @@
 
 assert str is not bytes
 
-
 import datetime
 from tornado import ioloop, stack_context, gen
 import yieldpoints
