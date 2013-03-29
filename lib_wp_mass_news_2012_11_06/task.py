@@ -1,6 +1,6 @@
 # -*- mode: python; coding: utf-8 -*-
 #
-# Copyright 2012 Andrej A Antonov <polymorphm@gmail.com>.
+# Copyright 2012, 2013 Andrej A Antonov <polymorphm@gmail.com>.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@ assert str is not bytes
 
 import datetime
 from tornado import ioloop, stack_context, gen
-import yieldpoints
+from . import timeout_delay
 
 DEFAULT_CONCURRENCE = 20
 
@@ -33,16 +33,16 @@ def task_thread(task_func, task_list,
     for task in task_list:
         if delay is not None:
             delay_wait_key = object()
-            io_loop.add_timeout(
-                    datetime.timedelta(seconds=delay),
-                    (yield gen.Callback(delay_wait_key)),
+            delay_cancel = timeout_delay.create_timeout_delay(
+                    delay,
+                    callback=(yield gen.Callback(delay_wait_key)),
                     )
         
         if error_delay is not None:
             error_delay_wait_key = object()
-            error_delay_id = io_loop.add_timeout(
-                    datetime.timedelta(seconds=error_delay),
-                    (yield gen.Callback(error_delay_wait_key)),
+            error_delay_cancel = timeout_delay.create_timeout_delay(
+                    error_delay,
+                    callback=(yield gen.Callback(error_delay_wait_key)),
                     )
         
         is_error = yield gen.Task(task_func, task)
@@ -51,11 +51,10 @@ def task_thread(task_func, task_list,
             yield gen.Wait(delay_wait_key)
         
         if error_delay is not None:
-            if is_error:
-                yield gen.Wait(error_delay_wait_key)
-            else:
-                io_loop.remove_timeout(error_delay_id)
-                yield yieldpoints.Cancel(error_delay_wait_key)
+            if not is_error:
+                error_delay_cancel()
+            
+            yield gen.Wait(error_delay_wait_key)
     
     if callback is not None:
         callback()
