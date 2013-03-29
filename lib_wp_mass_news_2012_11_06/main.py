@@ -63,13 +63,7 @@ def task_end_handle(task_cfg, task):
         e_type, e_value, e_tb = task.error
         msg = '[{!r}/{!r}, tr{!r}] {!r}: error: {!r}: {}'.format(
                 task.i, task_cfg.count, error_counter, task.blog_id, e_type, e_value)
-        tb_msg = '{}\n\n{}\n\n'.format(
-                msg, 
-                '\n'.join(map(
-                        lambda s: s.rstrip(),
-                        traceback.format_exception(e_type, e_value, e_tb),
-                        )),
-                )
+        tb_msg = '{}\n\n{}\n\n'.format(msg, e_tb)
         
         print(msg)
         task_cfg.out.write(msg, ext='log')

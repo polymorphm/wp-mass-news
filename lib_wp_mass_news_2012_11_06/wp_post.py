@@ -17,7 +17,7 @@
 
 assert str is not bytes
 
-import sys
+import traceback
 import threading
 import json
 import csv
@@ -279,8 +279,8 @@ def wp_post(*args, callback=None, **kwargs):
         
         try:
             result = wp_post_blocking(*args, **kwargs)
-        except:
-            error = sys.exc_info()
+        except Exception as e:
+            error = type(e), e, traceback.format_exc()
         
         if callback is not None:
             ioloop.IOLoop.instance().add_callback(lambda: callback(result, error))
