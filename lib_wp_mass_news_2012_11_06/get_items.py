@@ -19,7 +19,6 @@ from __future__ import absolute_import
 
 assert str is not bytes
 
-import sys
 import os, os.path
 import csv
 import itertools
