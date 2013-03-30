@@ -212,7 +212,7 @@ def ff_post(*args, callback=None, **kwargs):
         try:
             result = ff_post_blocking(*args, **kwargs)
         except Exception as e:
-            error = type(e), e, traceback.format_exc()
+            error = type(e), str(e), traceback.format_exc()
         
         if callback is not None:
             ioloop.IOLoop.instance().add_callback(lambda: callback(result, error))
