@@ -88,7 +88,11 @@ def task_end_handle(task_cfg, task):
         if task_title is not None:
             anc = '<a href="{}">{}</a>'.format(
                     html.escape(task_result), html.escape(task_title))
-            task_cfg.out.write(anc, ext='anc.txt')
+        else:
+            anc = '<a href="{}">{}</a>'.format(
+                    html.escape(task_result), html.escape(task_result))
+        
+        task_cfg.out.write(anc, ext='anc.txt')
     
     try:
         acc_save = task.acc_save
