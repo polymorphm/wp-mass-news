@@ -19,7 +19,7 @@ from __future__ import absolute_import
 
 assert str is not bytes
 
-import os, os.path
+import os, os.path, threading
 
 DEFAULT_EXT = 'txt'
 
@@ -89,6 +89,8 @@ def create_file(path):
 
 class OutMgr(object):
     def __init__(self, out_file=None, ext=None):
+        self._lock = threading.RLock()
+        
         if ext is not None:
             self._ext = ext
         else:
@@ -97,6 +99,8 @@ class OutMgr(object):
         self._fd_map = {}
     
     def get_fd(self, ext=None):
+        # this function is thread-safe
+        
         if ext is None:
             ext = self._ext
         
@@ -105,21 +109,28 @@ class OutMgr(object):
         if out_file is None:
             return
         
-        if ext != self._ext:
-            out_file = change_ext(out_file, ext)
-        
-        if ext in self._fd_map:
-            return self._fd_map[ext]
-        
-        self._fd_map[ext] = fd = create_file(out_file)
-        
-        return fd
+        with self._lock:
+            if ext != self._ext:
+                out_file = change_ext(out_file, ext)
+            
+            if ext in self._fd_map:
+                return self._fd_map[ext]
+            
+            self._fd_map[ext] = fd = create_file(out_file)
+            
+            return fd
     
     def write(self, text, ext=None, end=None):
+        # this function is thread-safe
+        
         if end is None:
             end = '\n'
         
         fd = self.get_fd(ext=ext)
         
-        fd.write('{}{}'.format(text, end))
-        fd.flush()
+        if fd is None:
+            return
+        
+        with self._lock:    
+            fd.write('{}{}'.format(text, end))
+            fd.flush()
