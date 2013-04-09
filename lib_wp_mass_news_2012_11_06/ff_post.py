@@ -79,7 +79,7 @@ def ff_post_blocking(username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != ff_login_url:
         raise FfError('phase: get params for auth: http-error')
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     
     at_nodes = tuple(html_parse.find_tags(
             html_parse.find_tags(
@@ -125,7 +125,7 @@ def ff_post_blocking(username=None, password=None,
     
     # *** PHASE: publish ***
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     
     form_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
@@ -178,7 +178,7 @@ def ff_post_blocking(username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != ff_share_url:
         raise PublishFfError('ff publish error')
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     data_json = json.loads(data)
     
     publish_ok = data_json.get('success')

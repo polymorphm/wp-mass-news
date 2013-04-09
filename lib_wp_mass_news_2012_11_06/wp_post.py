@@ -116,7 +116,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != wp_post_url:
         raise WpError('wp get params error')
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     
     form_html_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
@@ -203,7 +203,7 @@ def wp_post_blocking(blog_url=None, username=None, password=None,
     if resp.getcode() != 200 or resp.geturl() != wp_edit_url:
         raise WpError('wp get edit-param error')
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     
     inline_edit_param_node = next(iter(html_parse.find_tags(
             (html_parse.html_parse(data),),

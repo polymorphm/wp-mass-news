@@ -97,7 +97,7 @@ def lj_post_blocking(username=None, password=None,
     
     # *** PHASE: get params ***
     
-    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode()
+    data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode('utf-8', 'replace')
     
     form_html_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
