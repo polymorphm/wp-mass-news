@@ -25,7 +25,7 @@ import traceback
 import html
 import weakref
 from tornado import ioloop
-from . import task, wp_post, out_mgr
+from . import task, out_mgr
 
 DEFAULT_CONFIG_SECTION = 'wp-mass-news'
 DEFAULT_TOR_HOSTNAME = '127.0.0.1'
@@ -199,7 +199,17 @@ def main():
             task_end_handle=lambda task: task_end_handle(task_cfg, task),
             )
     
-    if task_cfg.acc_fmt.startswith('lj:'):
+    if task_cfg.acc_fmt.startswith('wpapi:'):
+        from . import wpapi_post
+        
+        task_func = wpapi_post.wpapi_post_task
+        task_list = get_task_list(wpapi_post.get_wpapi_post_task_list)
+    elif task_cfg.acc_fmt.startswith('wp:'):
+        from . import wp_post
+        
+        task_func = wp_post.wp_post_task
+        task_list = get_task_list(wp_post.get_wp_post_task_list)
+    elif task_cfg.acc_fmt.startswith('lj:'):
         from . import lj_post
         
         task_func = lj_post.lj_post_task
@@ -215,8 +225,7 @@ def main():
         task_func = ff_post.ff_post_task
         task_list = get_task_list(ff_post.get_ff_post_task_list)
     else:
-        task_func = wp_post.wp_post_task
-        task_list = get_task_list(wp_post.get_wp_post_task_list)
+        raise NotImplementedError('not implemented account type')
     
     task.bulk_task(
             task_func,
