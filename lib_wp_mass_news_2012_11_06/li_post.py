@@ -151,7 +151,7 @@ def li_post_blocking(username=None, password=None,
             'windows-1251', 'replace')
     post_link_nodes = tuple(html_parse.find_tags(
             (html_parse.html_parse(data),),
-            'a', in_attrs={'class': 'GL_LNXMAR22'}))
+            'a', in_attrs={'class': 'TTL'}))
     
     if not post_link_nodes:
         raise PublishLiError('li publishing error (PHASE: get post url)')
