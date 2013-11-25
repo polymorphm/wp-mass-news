@@ -18,6 +18,13 @@
 
 assert str is not bytes
 
+# XXX ``monkey_patch()`` must be run before other imports
+
+from lib_socks_proxy_2013_10_03 import monkey_patch as socks_proxy_monkey_patch
+socks_proxy_monkey_patch.monkey_patch()
+
+# end of monkey_patch code block
+
 from lib_wp_mass_news_2012_11_06 import main
 
 if __name__ == '__main__':

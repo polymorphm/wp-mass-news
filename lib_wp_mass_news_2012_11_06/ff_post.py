@@ -49,7 +49,7 @@ class Task:
     pass
 
 def ff_post_blocking(username=None, password=None,
-        content=None, ua_name=None):
+        content=None, ua_name=None, proxy_kwargs=None):
     assert username is not None
     assert password is not None
     assert content is not None
@@ -74,6 +74,7 @@ def ff_post_blocking(username=None, password=None,
                     ('User-Agent', ua_name),
                     ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     if resp.getcode() != 200 or resp.geturl() != ff_login_url:
@@ -117,6 +118,7 @@ def ff_post_blocking(username=None, password=None,
                     'next': FF_HTTP_URL,
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     if resp.getcode() != 200 or \
@@ -173,6 +175,7 @@ def ff_post_blocking(username=None, password=None,
                     '_nano': 1, # what is that?
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     if resp.getcode() != 200 or resp.geturl() != ff_share_url:
@@ -272,6 +275,7 @@ def get_ff_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.blog_id = 'ff:{}'.format(task.username)
         task.content = next(content_iter)
         task.ua_name = task_cfg.ua_name
+        task.proxy_kwargs = task_cfg.proxy_kwargs
         
         task.acc_save = lambda _task=task: ff_acc_save(
                 task_cfg,
@@ -295,7 +299,8 @@ def ff_post_task(task, callback=None):
             username=task.username,
             password=task.password,
             content=task.content,
-            ua_name=task.ua_name
+            ua_name=task.ua_name,
+            proxy_kwargs=task.proxy_kwargs,
             )).args
     
     if task.task_end_handle is not None:

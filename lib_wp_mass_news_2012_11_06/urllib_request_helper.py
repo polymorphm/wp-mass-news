@@ -19,6 +19,7 @@ assert str is not bytes
 
 import time
 from http import client as http_client
+from lib_socks_proxy_2013_10_03 import socks_proxy_context
 
 DEFAULT_USER_AGENT_NAME = 'Python'
 DEFAULT_TIMEOUT = 60.0
@@ -32,7 +33,7 @@ DEFAULT_ERROR_RETRY_DELAY = 0.5
 DEFAULT_ERROR_RETRY_DELAY_MULTIPLIER = 2.0
 
 def ext_open(opener, *args,
-        headers=None, new_headers=None,
+        headers=None, new_headers=None, proxy_kwargs=None,
         error_retry_list=None,
         error_retry_count=None, error_retry_delay=None,
         error_retry_delay_multiplier=None,
@@ -63,7 +64,11 @@ def ext_open(opener, *args,
     try:
         while True:
             try:
-                return opener.open(*args, **kwargs)
+                if proxy_kwargs is not None:
+                    with socks_proxy_context.socks_proxy_context(**proxy_kwargs):
+                        return opener.open(*args, **kwargs)
+                else:
+                    return opener.open(*args, **kwargs)
             except error_retry_list:
                 if error_retry_count <= 0:
                     raise

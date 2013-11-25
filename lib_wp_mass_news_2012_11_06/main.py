@@ -186,12 +186,11 @@ def main():
     task_cfg.error_retry_list = []
     
     if task_cfg.use_tor:
-        # TODO: this is dirty hack :-( .. need pure HTTP-over-SOCKS implementation
-        
-        from socks import PROXY_TYPE_SOCKS5, setdefaultproxy, wrapmodule as socks_wrap
-        from http import client as http_client
-        setdefaultproxy(PROXY_TYPE_SOCKS5, DEFAULT_TOR_HOSTNAME, task_cfg.tor_port)
-        socks_wrap(http_client)
+        task_cfg.proxy_kwargs = {
+                'proxy_address': (DEFAULT_TOR_HOSTNAME, task_cfg.tor_port),
+                }
+    else:
+        task_cfg.proxy_kwargs = None
     
     get_task_list = lambda get_task_list_func: get_task_list_func(
             task_cfg,
