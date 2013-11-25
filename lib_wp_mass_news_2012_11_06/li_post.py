@@ -53,7 +53,7 @@ class Task:
     pass
 
 def li_post_blocking(username=None, password=None,
-        title=None, content=None, tags=None, ua_name=None):
+        title=None, content=None, tags=None, ua_name=None, proxy_kwargs=None):
     assert username is not None
     assert password is not None
     assert title is not None
@@ -89,6 +89,7 @@ def li_post_blocking(username=None, password=None,
                     'action': 'login',
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     if resp.getcode() != 200 or \
@@ -122,6 +123,7 @@ def li_post_blocking(username=None, password=None,
                     'act': 'addpost',
                     }).encode(),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     if resp.getcode() != 200 or resp.geturl() != addpost_url:
@@ -145,6 +147,7 @@ def li_post_blocking(username=None, password=None,
                     ('User-Agent', ua_name),
                     ),
             timeout=urllib_request_helper.DEFAULT_TIMEOUT,
+            proxy_kwargs=proxy_kwargs,
             )
     
     data = resp.read(urllib_request_helper.DEFAULT_RESPONSE_LIMIT).decode(
@@ -237,6 +240,7 @@ def get_li_post_task_list(task_cfg, task_begin_handle=None, task_end_handle=None
         task.blog_id = 'li:{}'.format(task.username)
         task.title, task.content = next(title_and_content_iter)
         task.ua_name = task_cfg.ua_name
+        task.proxy_kwargs = task_cfg.proxy_kwargs
         
         if tags_iter is not None:
             tags_list = []
@@ -273,7 +277,8 @@ def li_post_task(task, callback=None):
             title=task.title,
             tags=task.tags,
             content=task.content,
-            ua_name=task.ua_name
+            ua_name=task.ua_name,
+            proxy_kwargs=task.proxy_kwargs,
             )).args
     
     if task.task_end_handle is not None:
