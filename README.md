@@ -7,4 +7,4 @@ to ``WordPress`` blogs (or some other type of blogs).
 Branch status
 -------------
 
-Development branch.
+Beta branch (version 0.7).
